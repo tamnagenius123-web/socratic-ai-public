@@ -1,6 +1,6 @@
 # Socratic AI — local source candidate
 
-This source candidate runs a limited synthetic demonstration of the application. It has not been approved for publication or production deployment. The original private repository and its history are preserved separately.
+This source candidate runs a limited synthetic demonstration of the application. Publication of this limited synthetic source demo is approved. Production deployment has not been verified or approved. The original private repository and its history are preserved separately.
 
 ## Run locally
 
@@ -40,7 +40,7 @@ The sanitized Wrangler files describe binding templates with placeholder resourc
 
 The owner approved MIT for code they control; see [LICENSE](LICENSE). Existing third-party notices and dependency licenses remain in force and are not relicensed. [Third-party inventory and notices](THIRD_PARTY_NOTICES.md) identify their scope. The former issuer-attributed reference cards have been replaced only in this candidate with newly authored synthetic examples. The original private source is preserved separately; no rights to third-party filings are claimed.
 
-Dependencies, generated builds, local state and environment files are excluded from the publication allowlist. This candidate has no Git history, but that alone is not evidence of a clean or approved release.
+Dependencies, generated builds, local state and environment files are excluded from the publication allowlist. This repository has a new, independent Git history that does not include the original private repository history. A separate history and a secret scan alone do not establish complete confidentiality or production readiness.
 
 The optional PM2 file now invokes the same local launcher. That launcher supplies only generated local signing material to its Worker, without provider credentials. The manual bandit API script rejects non-loopback targets. Those alternate paths have static/guard checks; PM2 itself has not been installed or launched.
 
