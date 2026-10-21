@@ -1,0 +1,35 @@
+// Deployment binding template only. All resource IDs are placeholders; local:dev uses its own disconnected runtime.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "socratic-ai-public-local",
+  "compatibility_date": "2026-03-31",
+  "pages_build_output_dir": "./dist",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "socratic-ai-db",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "preview_database_id": "DB"
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
+  "vectorize": [
+    {
+      "binding": "VECTORIZE_INDEX",
+      "index_name": "configure-your-vectorize-index"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "ANALYTICS_QUEUE",
+        "queue": "socratic-analytics-queue"
+      }
+    ]
+  }
+}

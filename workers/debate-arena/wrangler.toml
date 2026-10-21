@@ -1,0 +1,21 @@
+name = "socratic-debate-arena"
+main = "src/index.ts"
+compatibility_date = "2026-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Required secret; do not commit a value:
+#   npx wrangler secret put DEBATE_RUNTIME_SERVICE_TOKEN
+
+[durable_objects]
+bindings = [
+  { name = "DEBATE_ROOM", class_name = "DebateRoomDO" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["DebateRoomDO"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "socratic-ai-db"
+database_id = "00000000-0000-0000-0000-000000000000"

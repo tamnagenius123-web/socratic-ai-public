@@ -1,0 +1,10 @@
+{
+  "id": "HH-SYNTHETIC-DEMO-ADAPTER-1.0.0",
+  "baselineVersion": "HH-SYNTHETIC-BASE-1.0.0",
+  "caseId": "HH-INVEST-100B",
+  "caseVersion": "1.1.0-synthetic",
+  "sourceManifestVersion": "HH-SYNTHETIC-SOURCES-1.0.0",
+  "contractSnapshotSha256": "4617346d57fddf2bc30a094ff172586d201ae68bf5453dcf86ef30d7f87a5c87",
+  "scope": "Newly authored synthetic local source example; not the original private benchmark or an actual issuer filing",
+  "payloadIncluded": false
+}

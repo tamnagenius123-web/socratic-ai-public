@@ -1,0 +1,54 @@
+{
+  "name": "socratic-ai",
+  "version": "35.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run local:dev",
+    "dev:styles": "tailwindcss -c tailwind.config.js -i public/static/tailwind-input.css -o public/static/tailwind.generated.css --minify --watch",
+    "build:worker:watch": "vite build --watch",
+    "build:styles": "tailwindcss -c tailwind.config.js -i public/static/tailwind-input.css -o public/static/tailwind.generated.css --minify",
+    "build": "npm run build:styles && vite build",
+    "preview": "node scripts/local-demo.mjs",
+    "deploy": "node scripts/assert-production-ai-build.mjs && node scripts/deployment-not-configured.mjs",
+    "deploy:prod": "node scripts/assert-production-ai-build.mjs && node scripts/deployment-not-configured.mjs",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "db:migrate:local": "wrangler d1 migrations apply socratic-ai-db --local",
+    "db:migrate:remote": "node scripts/deployment-not-configured.mjs",
+    "db:migrations:remote:list": "node scripts/deployment-not-configured.mjs",
+    "db:reset": "rm -rf .wrangler/state/v3/d1 && npm run db:migrate:local",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck:critical-path-b": "tsc -p tsconfig.critical-path-b.json --noEmit",
+    "typecheck:watch": "tsc -p tsconfig.critical-path-b.json --noEmit --watch",
+    "deploy:consumer": "node scripts/assert-production-ai-build.mjs && node scripts/deployment-not-configured.mjs",
+    "deploy:debate": "node scripts/assert-production-ai-build.mjs && node scripts/deployment-not-configured.mjs",
+    "deploy:zkp": "node scripts/assert-production-ai-build.mjs && node scripts/deployment-not-configured.mjs",
+    "deploy:all": "node scripts/assert-production-ai-build.mjs && node scripts/deployment-not-configured.mjs",
+    "local:schema": "node scripts/prepare-local-schema.mjs",
+    "local:dev": "npm run build && node scripts/local-demo.mjs",
+    "local:smoke": "npm run build && node scripts/local-demo.mjs --smoke"
+  },
+  "dependencies": {
+    "hono": "^4.12.9"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20260329.1",
+    "@hono/vite-build": "^1.2.0",
+    "@hono/vite-dev-server": "^0.18.2",
+    "@types/node": "24.13.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "7.0.2",
+    "vite": "^6.3.5",
+    "vitest": "^3.1.1",
+    "wrangler": "^4.4.0",
+    "miniflare": "4.20260329.0"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tamnagenius123-web/socratic-ai-public.git"
+  }
+}

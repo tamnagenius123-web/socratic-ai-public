@@ -1,0 +1,93 @@
+{
+  "domainId": "stoic_philosophy",
+  "nodes": [
+    {
+      "id": "stoic_apatheia",
+      "concept": "아파테이아 (Apatheia)",
+      "description": "마음의 평온함과 정서적 자유의 추구",
+      "bloomLevel": "K4",
+      "coreEssence": "마음의 평온함. 외부 사건에 영향받지 않는 정신 상태의 추구.",
+      "buildingBlocks": {
+        "blocks": ["이성적 판단", "정서 통제", "가치판단의 재구성"]
+      },
+      "metaphoricalBridges": {
+        "bridges": ["내면의 성채로 진입하는 관문", "우주 속 티끌의 관점 획득"]
+      },
+      "metadata": {
+        "mastery": 0.85
+      }
+    },
+    {
+      "id": "inner_citadel",
+      "concept": "내면의 성채",
+      "description": "프롱티스 내 통제 가능한 영역",
+      "bloomLevel": "K5",
+      "coreEssence": "외부의 간섭으로부터 독립된 내적 자유와 판단력의 영역.",
+      "buildingBlocks": {
+        "blocks": ["이성적 능력", "의지의 자유", "가치 기준의 내재화"]
+      },
+      "metaphoricalBridges": {
+        "bridges": ["스토아적 평온으로의 진입", "우주적 관점의 기초"]
+      },
+      "metadata": {
+        "mastery": 0.72
+      }
+    },
+    {
+      "id": "cosmic_perspective",
+      "concept": "우주적 관점",
+      "description": "모든 사건을 거대 스케일에서 조망",
+      "bloomLevel": "K3",
+      "coreEssence": "인간의 개별적 사건들을 우주의 거대한 시간과 공간 속에 배치하는 지적 활동.",
+      "buildingBlocks": {
+        "blocks": ["우주의 규모 인식", "시간의 흐름 이해", "상대성의 깨달음"]
+      },
+      "metaphoricalBridges": {
+        "bridges": ["내면의 성채에서 보는 외부 세계", "무상함을 통한 탈출"]
+      },
+      "metadata": {
+        "mastery": 0.25
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "fromId": "cosmic_perspective",
+      "toId": "stoic_apatheia",
+      "relationType": "supports",
+      "strength": 0.8
+    },
+    {
+      "id": "edge_2",
+      "fromId": "inner_citadel",
+      "toId": "stoic_apatheia",
+      "relationType": "foundational",
+      "strength": 0.9
+    },
+    {
+      "id": "edge_3",
+      "fromId": "cosmic_perspective",
+      "toId": "inner_citadel",
+      "relationType": "enables",
+      "strength": 0.6
+    }
+  ],
+  "synapses": [
+    {
+      "fromId": "cosmic_perspective",
+      "toId": "stoic_apatheia",
+      "synapseWeight": 0.7,
+      "userId": "user_123"
+    },
+    {
+      "fromId": "inner_citadel",
+      "toId": "stoic_apatheia",
+      "synapseWeight": 0.85,
+      "userId": "user_123"
+    }
+  ],
+  "totalNodes": 3,
+  "totalEdges": 3,
+  "totalSynapses": 2
+}

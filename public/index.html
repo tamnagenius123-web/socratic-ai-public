@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#D97757">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>SocraticAI - 탐라영재관 독서토론 AI 튜터</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icon.svg">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/tailwind.generated.css">
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/v35-overrides.css">
+  <script>
+    // v26: Dark mode init
+    (function(){
+      const t = localStorage.getItem('theme');
+      const p = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (t === 'dark' || (!t && p)) {
+        document.documentElement.setAttribute('data-theme','dark');
+        document.documentElement.classList.add('dark');
+      }
+    })();
+    // v35: PWA service-worker upgrade path. The worker script must bypass the
+    // HTTP cache so an installed older shell can discover the current release.
+    if ('serviceWorker' in navigator) {
+      const reloadKey = 'socratic-sw-controller-reload-v35.1.0-20260825-r3';
+      window.addEventListener('pageshow', () => sessionStorage.removeItem(reloadKey), { once: true });
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+          .then((registration) => registration.update())
+          .catch((error) => console.warn('[PWA] Service worker update failed:', error));
+      });
+
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (sessionStorage.getItem(reloadKey) === '1') return;
+        sessionStorage.setItem(reloadKey, '1');
+        window.location.reload();
+      });
+    }
+  </script>
+</head>
+<body class="dark:bg-slate-900 dark:text-gray-100">
+  <div id="app">
+    <!-- v26 LANDING SCREEN -->
+    <div id="landing-screen" class="min-h-screen" style="display:block;">
+      <!-- Navbar -->
+      <nav class="bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 md:px-8 py-3 flex items-center justify-between sticky top-0 z-30">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center shadow-md">
+            <i class="fas fa-brain text-white text-lg"></i>
+          </div>
+          <span class="text-xl font-bold"><span class="text-gray-900">Socratic</span><span class="text-primary-500">AI</span></span>
+          <span class="text-[10px] bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full font-bold" data-version>v35.1.0</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button onclick="hideLanding()" class="btn-secondary text-sm px-4 py-2"><i class="fas fa-sign-in-alt mr-1"></i>로그인</button>
+          <button onclick="skipLogin()" class="btn-primary text-sm px-4 py-2"><i class="fas fa-play mr-1"></i>바로 체험</button>
+        </div>
+      </nav>
+
+      <!-- Hero Section -->
+      <section class="relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-indigo-50"></div>
+        <div class="absolute top-20 left-10 w-72 h-72 bg-primary-200/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-10 right-10 w-96 h-96 bg-indigo-200/20 rounded-full blur-3xl"></div>
+        <div class="relative max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-24">
+          <div class="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary-100 to-indigo-100 text-primary-700 text-sm font-semibold mb-6 shadow-sm">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                Library + Sparring + Training Scenario
+              </div>
+              <h1 class="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-6">
+                답을 주지 않는<br>
+                <span class="bg-gradient-to-r from-primary-500 to-indigo-500 bg-clip-text text-transparent">소크라테스식</span><br>
+                AI 논증 튜터
+              </h1>
+              <p class="text-lg text-gray-600 leading-relaxed mb-8">
+                10턴 소크라테스 토론에서 AI가 당신의 주장을 압박합니다.<br>
+                <strong class="text-gray-800">도서 근거 스냅샷 + 6단계 질문 흐름 + 근거 기반 성장 기록</strong>
+              </p>
+              <div class="flex flex-wrap gap-4 mb-8">
+                <button onclick="hideLanding()" class="bg-gradient-to-r from-primary-500 to-primary-600 text-white border-none rounded-2xl px-8 py-4 font-bold cursor-pointer transition-all hover:shadow-lg hover:shadow-primary-300/50 hover:-translate-y-0.5 flex items-center gap-2 text-base">
+                  <i class="fas fa-sign-in-alt"></i> 로그인하고 시작하기
+                </button>
+                <button onclick="hideLanding()" class="bg-white text-gray-700 border-2 border-gray-200 rounded-2xl px-8 py-4 font-bold cursor-pointer transition-all hover:border-primary-300 hover:bg-primary-50 flex items-center gap-2 text-base">
+                  <i class="fas fa-sign-in-alt"></i> 로그인 / 회원가입
+                </button>
+              </div>
+              <div class="flex items-center gap-6 text-sm text-gray-500">
+                <span class="flex items-center gap-1.5"><i class="fas fa-lock text-green-500"></i> 비공개 Library</span>
+                <span class="flex items-center gap-1.5"><i class="fas fa-quote-right text-green-500"></i> 근거 추적</span>
+                <span class="flex items-center gap-1.5"><i class="fas fa-project-diagram text-green-500"></i> 실세계 시나리오</span>
+              </div>
+            </div>
+            <!-- Live Argument Graph Demo -->
+            <div class="relative">
+              <div class="absolute -inset-4 bg-gradient-to-r from-primary-200/30 to-indigo-200/30 rounded-3xl blur-xl"></div>
+              <div class="relative bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center"><i class="fas fa-project-diagram text-indigo-500 text-sm"></i></div>
+                    <span class="font-bold text-gray-800 text-sm">실시간 논증 그래프</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="text-xs font-bold text-green-600 uppercase">Live Demo</span>
+                  </div>
+                </div>
+                <canvas id="landing-arg-demo" width="420" height="280" style="width:100%;border-radius:12px;background:linear-gradient(135deg,#F8FAFC,#EEF2FF);"></canvas>
+                <div class="mt-4 flex justify-between text-xs text-gray-500">
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>주장</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>근거</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>전제</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>반박</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>결론</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats Bar -->
+      <section class="bg-white border-y border-gray-100 py-6 px-4">
+        <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div><p class="text-2xl font-extrabold text-primary-600">v35.1.0</p><p class="text-xs text-gray-500 mt-1">최신 엔진 버전</p></div>
+          <div><p class="text-2xl font-extrabold text-indigo-600">18축</p><p class="text-xs text-gray-500 mt-1">마이크로 평가 지표</p></div>
+          <div><p class="text-2xl font-extrabold text-green-600">10턴</p><p class="text-xs text-gray-500 mt-1">소크라테스 논증</p></div>
+          <div><p class="text-2xl font-extrabold text-amber-600">xAIF</p><p class="text-xs text-gray-500 mt-1">국제 논증 표준</p></div>
+        </div>
+      </section>
+
+      <!-- How It Works -->
+      <section class="py-16 px-4 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+          <div class="text-center mb-12">
+            <span class="text-xs font-bold text-primary-600 uppercase tracking-widest">Process</span>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mt-2">소크라테스 토론은 이렇게 진행됩니다</h2>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative">
+              <span class="absolute -top-3 -left-3 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md">1</span>
+              <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4"><i class="fas fa-book-open text-blue-500 text-xl"></i></div>
+              <h3 class="font-bold text-gray-900 mb-2">텍스트 선택</h3>
+              <p class="text-sm text-gray-500">고전 명저 또는 직접 업로드한 텍스트로 토론 주제를 선택합니다.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative">
+              <span class="absolute -top-3 -left-3 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md">2</span>
+              <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mb-4"><i class="fas fa-comments text-purple-500 text-xl"></i></div>
+              <h3 class="font-bold text-gray-900 mb-2">소크라테스 토론</h3>
+              <p class="text-sm text-gray-500">AI가 10턴 동안 주장 명료화 → 근거 → 추론 → 반례 → 수정 → 종합 단계로 압박합니다.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative">
+              <span class="absolute -top-3 -left-3 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md">3</span>
+              <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-4"><i class="fas fa-chart-radar text-emerald-500 text-xl"></i></div>
+              <h3 class="font-bold text-gray-900 mb-2">실시간 분석</h3>
+              <p class="text-sm text-gray-500">논증 그래프, 레이더 차트, 인지 과정 점수를 실시간으로 추적합니다.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative">
+              <span class="absolute -top-3 -left-3 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md">4</span>
+              <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center mb-4"><i class="fas fa-award text-amber-500 text-xl"></i></div>
+              <h3 class="font-bold text-gray-900 mb-2">성장 기록</h3>
+              <p class="text-sm text-gray-500">초기 주장과 수정된 주장, 사용한 근거, 남은 약점을 세션 기록에서 확인합니다.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Grid -->
+      <section class="py-16 px-4 bg-white">
+        <div class="max-w-5xl mx-auto">
+          <div class="text-center mb-12">
+            <span class="text-xs font-bold text-primary-600 uppercase tracking-widest">Features</span>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mt-2">깊은 독서와 실전 문제 해결</h2>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl border border-purple-100">
+              <div class="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center mb-4"><i class="fas fa-brain text-white"></i></div>
+              <h4 class="font-bold text-gray-900 mb-2">독서 스파링</h4>
+              <p class="text-sm text-gray-600">도서의 정확한 근거 조각에 기대어 주장을 만들고, 반례와 추가 질문을 통해 수정합니다.</p>
+            </div>
+            <div class="p-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl border border-orange-100">
+              <div class="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center mb-4"><i class="fas fa-dumbbell text-white"></i></div>
+              <h4 class="font-bold text-gray-900 mb-2">시나리오 훈련</h4>
+              <p class="text-sm text-gray-600">여러 분야의 라이브러리 근거를 고정한 뒤, 이해관계자와 제약이 있는 실제 문제에서 선택과 결과를 반복합니다.</p>
+            </div>
+            <div class="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border border-blue-100">
+              <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center mb-4"><i class="fas fa-users text-white"></i></div>
+              <h4 class="font-bold text-gray-900 mb-2">나의 라이브러리</h4>
+              <p class="text-sm text-gray-600">직접 올린 도서는 나의 계정에만 보이며, 저장·근거 분할·인덱싱 상태를 구분해 보여줍니다.</p>
+            </div>
+            <div class="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100">
+              <div class="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center mb-4"><i class="fas fa-project-diagram text-white"></i></div>
+              <h4 class="font-bold text-gray-900 mb-2">근거 출처</h4>
+              <p class="text-sm text-gray-600">스파링과 시나리오에 사용된 도서, 문자 범위, 내용 해시를 스냅샷으로 남겨 재현성을 키웁니다.</p>
+            </div>
+            <div class="p-6 bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl border border-rose-100">
+              <div class="w-10 h-10 bg-rose-500 rounded-xl flex items-center justify-center mb-4"><i class="fas fa-shield-alt text-white"></i></div>
+              <h4 class="font-bold text-gray-900 mb-2">거짓 성공 없는 상태</h4>
+              <p class="text-sm text-gray-600">근거 부족, 생성 오류, 재시도 가능, 삭제 대기 상태를 성공처럼 포장하지 않고 원인과 다음 행동을 보여줍니다.</p>
+            </div>
+            <div class="p-6 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl border border-indigo-100">
+              <div class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center mb-4"><i class="fas fa-chalkboard-teacher text-white"></i></div>
+              <h4 class="font-bold text-gray-900 mb-2">세션 기록</h4>
+              <p class="text-sm text-gray-600">이전 주장, 턴별 대화, 근거 사용, 현재 상태를 계속 보존해 학습자가 변화 과정을 되짚을 수 있게 합니다.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4축 역량 -->
+      <section class="py-16 px-4 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+          <div class="text-center mb-12">
+            <span class="text-xs font-bold text-primary-600 uppercase tracking-widest">Assessment</span>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mt-2">측정되는 비판적 사고 역량</h2>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center hover:shadow-md transition-shadow">
+              <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-crosshairs text-blue-500 text-xl"></i></div>
+              <h4 class="font-bold text-gray-900 text-sm">논리적 구조화</h4>
+              <p class="text-xs text-gray-500 mt-2">주장-전제-결론의 논리적 무결성을 평가합니다</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center hover:shadow-md transition-shadow">
+              <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-database text-green-500 text-xl"></i></div>
+              <h4 class="font-bold text-gray-900 text-sm">데이터 리터러시</h4>
+              <p class="text-xs text-gray-500 mt-2">텍스트 근거 기반 논증 능력을 훈련합니다</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center hover:shadow-md transition-shadow">
+              <div class="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-sync-alt text-purple-500 text-xl"></i></div>
+              <h4 class="font-bold text-gray-900 text-sm">인지적 유연성</h4>
+              <p class="text-xs text-gray-500 mt-2">반론 수용, 관점 전환, 주장 수정 능력</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center hover:shadow-md transition-shadow">
+              <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-handshake text-amber-500 text-xl"></i></div>
+              <h4 class="font-bold text-gray-900 text-sm">커뮤니케이션</h4>
+              <p class="text-xs text-gray-500 mt-2">결론 선행, MECE, 실행가능성 평가</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA Footer -->
+      <section class="py-16 px-4 bg-gradient-to-br from-primary-500 to-indigo-600 text-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]"></div>
+        <div class="relative max-w-2xl mx-auto">
+          <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">지금 바로 소크라테스 토론을 시작하세요</h2>
+          <p class="text-primary-100 mb-8">계정별 비공개 도서와 근거 기록으로 학습 흐름을 안전하게 이어가세요.</p>
+          <div class="flex flex-wrap gap-4 justify-center">
+            <button onclick="hideLanding()" class="bg-white text-primary-700 border-none rounded-2xl px-8 py-4 font-bold cursor-pointer transition-all hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2 text-base">
+              <i class="fas fa-sign-in-alt"></i> 로그인하고 시작
+            </button>
+            <button onclick="hideLanding()" class="bg-transparent text-white border-2 border-white/50 rounded-2xl px-8 py-4 font-bold cursor-pointer transition-all hover:bg-white/10 flex items-center gap-2 text-base">
+              <i class="fas fa-user-plus"></i> 회원가입
+            </button>
+          </div>
+          <p class="mt-6 text-sm text-primary-200" data-version>v35.1.0 — Loading...</p>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="bg-gray-900 text-gray-400 py-8 px-4 text-center text-sm">
+        <p>SocraticAI v35.1.0 &mdash; Library-grounded Sparring &middot; Training = Scenario &middot; xAIF</p>
+        <p class="mt-2 text-gray-500">Powered by Cloudflare Workers &middot; Hono Framework</p>
+      </footer>
+    </div>
+
+    <!-- AUTH SCREEN -->
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4" style="display:none;">
+      <div class="card max-w-md w-full" style="padding:40px;">
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-brain text-primary-500 text-2xl"></i>
+          </div>
+          <h1 class="text-2xl font-bold"><span class="text-gray-900">Socratic</span><span class="text-primary-500">AI</span></h1>
+          <p class="text-gray-500 text-sm mt-1">탐라영재관 독서토론 동아리</p>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form">
+          <form onsubmit="event.preventDefault();doLogin()" class="space-y-4" autocomplete="on">
+            <div>
+              <label class="text-sm font-bold text-gray-700 block mb-1">이메일</label>
+              <input type="email" id="login-email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none" placeholder="이메일 주소" autocomplete="username">
+            </div>
+            <div>
+              <label class="text-sm font-bold text-gray-700 block mb-1">비밀번호</label>
+              <input type="password" id="login-password" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none" placeholder="비밀번호" autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn-primary w-full justify-center" id="login-btn"><i class="fas fa-sign-in-alt"></i> 로그인</button>
+          </form>
+          <div class="mt-4 text-center">
+            <button onclick="showRegister()" class="text-sm text-primary-500 hover:text-primary-700 font-medium">계정이 없으신가요? 회원가입</button>
+          </div>
+          <div class="mt-3 text-center">
+          </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" style="display:none;">
+          <form onsubmit="event.preventDefault();doRegister()" class="space-y-3" autocomplete="on">
+            <div>
+              <label class="text-sm font-bold text-gray-700 block mb-1">이름 <span class="text-red-500">*</span></label>
+              <input type="text" id="reg-username" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none" placeholder="이름">
+            </div>
+            <div>
+              <label class="text-sm font-bold text-gray-700 block mb-1">이메일 <span class="text-red-500">*</span></label>
+              <input type="email" id="reg-email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none" placeholder="이메일">
+            </div>
+            <div>
+              <label class="text-sm font-bold text-gray-700 block mb-1">비밀번호 <span class="text-red-500">*</span></label>
+              <input type="password" id="reg-password" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none" placeholder="최소 6자" autocomplete="new-password">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-sm font-bold text-gray-700 block mb-1">학번</label>
+                <input type="text" id="reg-studentid" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none" placeholder="2024-001">
+              </div>
+              <div>
+                <label class="text-sm font-bold text-gray-700 block mb-1">학년</label>
+                <select id="reg-grade" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-primary-300 outline-none">
+                  <option value="">선택</option>
+                  <option value="1">1학년</option>
+                  <option value="2">2학년</option>
+                  <option value="3">3학년</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary w-full justify-center" id="reg-btn"><i class="fas fa-user-plus"></i> 회원가입</button>
+          </form>
+          <div class="mt-4 text-center">
+            <button onclick="showLogin()" class="text-sm text-primary-500 hover:text-primary-700 font-medium">이미 계정이 있으신가요? 로그인</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN APP (hidden until authenticated) -->
+    <div id="main-app" style="display:none;">
+      <!-- Header -->
+      <header class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
+            <i class="fas fa-brain text-primary-500 text-lg"></i>
+          </div>
+          <span class="text-xl font-bold"><span class="text-gray-900">Socratic</span><span class="text-primary-500">AI</span></span>
+        </div>
+        <nav class="flex gap-3 md:gap-5" id="main-nav" aria-label="Primary navigation">
+          <button type="button" class="nav-tab" data-navigation-control data-tab="library" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('library')">Library</button>
+          <button type="button" class="nav-tab active" data-navigation-control data-tab="sparring" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('sparring')" aria-current="page">Sparring</button>
+          <button type="button" class="nav-tab" data-navigation-control data-tab="training" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('training')">훈련</button>
+          <button type="button" class="nav-tab" data-navigation-control data-tab="history" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('history')">History</button>
+          <button type="button" class="nav-tab" data-navigation-control data-tab="dashboard" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('dashboard')">Dashboard</button>
+          <div class="desktop-more-shell">
+            <button type="button" class="nav-tab" id="desktop-more-btn" data-nav-group="more" onclick="toggleDesktopMore()" aria-expanded="false" aria-controls="desktop-more-menu">More</button>
+            <div id="desktop-more-menu" class="navigation-menu desktop-more-menu" role="group" aria-label="More destinations" aria-hidden="true" hidden>
+              <div class="navigation-menu-heading">
+                <span>More</span>
+                <button type="button" class="navigation-menu-close" onclick="closeDesktopMore(true)" aria-label="Close More menu"><i class="fas fa-times" aria-hidden="true"></i></button>
+              </div>
+              <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="growth-lab" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('growth-lab', { focusDestination: true })"><i class="fas fa-seedling" aria-hidden="true"></i><span>성장 실험실</span></button>
+              <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="neuralwiki" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('neuralwiki', { focusDestination: true })"><i class="fas fa-project-diagram" aria-hidden="true"></i><span>Neural Wiki</span></button>
+              <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="debate" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('debate', { focusDestination: true })"><i class="fas fa-comments" aria-hidden="true"></i><span>Debate</span></button>
+              <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="classchat" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('classchat', { focusDestination: true })"><i class="fas fa-people-arrows" aria-hidden="true"></i><span>ClassChat</span></button>
+              <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="hrd-program" data-auth-required="true" data-role-required="instructor,admin" onclick="switchTab('hrd-program', { focusDestination: true })"><i class="fas fa-user-check" aria-hidden="true"></i><span>HRD Program</span></button>
+              <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="enterprise" data-auth-required="true" data-role-required="admin" onclick="switchTab('enterprise', { focusDestination: true })" aria-hidden="true" tabindex="-1" hidden><i class="fas fa-building" aria-hidden="true"></i><span>Enterprise</span></button>
+              <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="admin" data-auth-required="true" data-role-required="admin" onclick="switchTab('admin', { focusDestination: true })" aria-hidden="true" tabindex="-1" hidden><i class="fas fa-cog" aria-hidden="true"></i><span>Admin</span></button>
+            </div>
+          </div>
+        </nav>
+        <div class="flex items-center gap-3">
+          <button class="mobile-toggle items-center justify-center w-10 h-10 bg-gray-100 rounded-full text-gray-600" onclick="toggleMobileDashboard()" id="mobile-dash-btn" style="display:none;" aria-label="실시간 대시보드 열기" aria-expanded="false" aria-controls="dashboard-sidebar">
+            <i class="fas fa-chart-bar"></i>
+          </button>
+          <div id="header-token-bar" class="hidden items-center"></div>
+          <!-- v26: Dark Mode Toggle (Desktop) -->
+          <button onclick="toggleDarkMode()" class="hidden md:flex w-10 h-10 bg-gray-100 dark:bg-slate-700 rounded-full items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition" title="다크모드" aria-label="다크모드 전환">
+            <i class="fas fa-moon dark-mode-icon"></i>
+          </button>
+          <div class="relative">
+            <button onclick="toggleUserMenu()" class="w-10 h-10 bg-gray-800 dark:bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-bold" id="user-avatar" aria-label="사용자 메뉴" aria-expanded="false">?</button>
+            <div id="user-menu" class="absolute right-0 top-12 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg p-3 w-56 z-50" style="display:none;">
+              <div class="px-3 py-2 border-b border-gray-100 dark:border-slate-700 mb-2">
+                <p class="font-bold text-gray-900 dark:text-gray-100 text-sm" id="menu-username">-</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400" id="menu-email">-</p>
+                <span class="text-[10px] bg-primary-50 dark:bg-primary-900 text-primary-600 dark:text-primary-300 px-2 py-0.5 rounded-full font-medium" id="menu-role">student</span>
+              </div>
+              <button onclick="doLogout()" class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"><i class="fas fa-sign-out-alt mr-2"></i>로그아웃</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Sub Header (Sparring mode) -->
+      <div id="sub-header" class="bg-white border-b border-gray-100 px-4 md:px-6 py-2 flex items-center justify-between" style="display:none;">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-book-open text-primary-500"></i>
+          <div>
+            <span class="font-bold text-gray-900 text-sm">Socratic Sparring Session</span>
+            <p class="text-xs text-gray-500" id="sub-book-info">-</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 bg-gray-50 px-3 md:px-4 py-1.5 rounded-full">
+            <span class="w-2 h-2 bg-primary-500 rounded-full"></span>
+            <span class="text-sm text-gray-700 hidden sm:inline">Hint</span>
+            <span class="text-sm font-bold text-gray-900" id="hint-level-display">Lv.0</span>
+          </div>
+          <button onclick="openSettings()" class="text-gray-400 hover:text-gray-600 w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition" aria-label="세션 설정"><i class="fas fa-cog"></i></button>
+        </div>
+      </div>
+
+      <!-- SPARRING TAB -->
+      <div id="tab-sparring" class="tab-content">
+        <div class="flex h-[calc(100vh-110px)]">
+          <div class="flex-1 flex flex-col min-w-0" style="flex:6;">
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-thin">
+              <div id="welcome-state" class="flex items-center justify-center h-full">
+                <div class="text-center max-w-md">
+                  <div class="w-20 h-20 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-brain text-primary-500 text-3xl"></i>
+                  </div>
+                  <h2 class="text-2xl font-bold text-gray-900 mb-3">SocraticAI</h2>
+                  <p class="text-gray-500 mb-4">소크라테스식 독서 토론 AI 튜터와 함께<br>텍스트의 깊은 의미를 탐구해 보세요.</p>
+
+                  <div class="text-left bg-gray-50 border border-gray-200 rounded-xl p-4 mb-5">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">도서 선택</p>
+                    <select id="sparring-book-selector" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-primary-300 outline-none mb-3" onchange="onSparringBookSelect(this.value)">
+                      <option value="">불러오는 중...</option>
+                    </select>
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">세션 시작 옵션</p>
+                    <div class="space-y-2">
+                      <button id="start-mode-initial" onclick="setSparringStartMode('initial_claim')" class="w-full text-left px-3 py-2 rounded-lg border border-primary-300 bg-primary-50">
+                        <p class="text-sm font-semibold text-gray-900">1) 초기 입장 정하기</p>
+                        <p class="text-xs text-gray-600 mt-0.5">텍스트에 대한 나의 기본 주장부터 시작합니다.</p>
+                      </button>
+                      <button id="start-mode-deep" onclick="setSparringStartMode('deep_reading_question')" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 bg-white hover:border-primary-200">
+                        <p class="text-sm font-semibold text-gray-900">2) 심화 독해 질문</p>
+                        <p class="text-xs text-gray-600 mt-0.5">핵심 주제/구절 해석 중심의 고급 질문으로 시작합니다.</p>
+                      </button>
+                    </div>
+                  </div>
+
+                  <button onclick="startSession()" class="btn-primary mx-auto"><i class="fas fa-play"></i> 세션 시작하기</button>
+                  <p class="text-xs text-gray-400 mt-3">또는 Library 탭에서 도서를 선택하세요</p>
+                </div>
+              </div>
+            </div>
+            <div id="input-bar" class="border-t border-gray-200 bg-white p-3 md:p-4" style="display:none;">
+              <div class="max-w-3xl mx-auto">
+                <div class="flex items-end gap-2 md:gap-3 bg-gray-50 rounded-2xl p-3 border border-gray-200 focus-within:border-primary-300 transition">
+                  <textarea id="user-input" class="flex-1 bg-transparent border-none text-gray-800 text-sm leading-relaxed min-h-[24px] max-h-[120px] outline-none" placeholder="반론을 제시하거나 텍스트 근거를 인용하세요..." rows="1" onkeydown="handleInputKeydown(event)" oninput="autoResizeTextarea(this)"></textarea>
+                  <button id="submit-btn" onclick="submitMessage()" class="btn-primary text-sm whitespace-nowrap" disabled>
+                    <span class="hidden sm:inline">Submit</span>
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+                <div class="flex justify-between mt-2 px-2">
+                  <span class="text-xs text-gray-400 uppercase tracking-wide hidden sm:block">Shift + Enter for new line</span>
+                  <button id="sparring-hint-btn" onclick="askForHint()" class="text-xs text-primary-500 hover:text-primary-700 font-medium flex items-center gap-1"><i class="fas fa-question-circle"></i> ASK FOR HINT</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside id="dashboard-sidebar" class="w-[380px] lg:w-[400px] border-l border-gray-200 bg-gray-50 overflow-y-auto p-4 space-y-4 scrollbar-thin" style="display:none;" aria-label="실시간 학습 대시보드" tabindex="-1">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Real-Time Observer</span>
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-live rounded-full pulse-live"></span>
+                <span class="text-xs font-bold text-live uppercase">Live</span>
+                <button type="button" id="mobile-dashboard-close" class="dashboard-drawer-close" onclick="closeMobileDashboard(true)" aria-label="실시간 대시보드 닫기"><i class="fas fa-times" aria-hidden="true"></i></button>
+              </div>
+            </div>
+            <div class="card fade-in">
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center"><i class="fas fa-crosshairs text-primary-500 text-sm"></i></div>
+                <span class="font-bold text-gray-900">Current Discourse</span>
+              </div>
+              <div class="mb-3">
+                <span class="text-[10px] font-bold text-teal-700 uppercase tracking-wider">Topic</span>
+                <p class="text-base font-semibold text-gray-900 mt-1" id="dash-topic">-</p>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold text-danger uppercase tracking-wider">Your Core Claim</span>
+                <div class="quote-border mt-2">
+                  <p class="text-sm text-gray-700 italic" id="dash-claim">아직 주장이 제출되지 않았습니다.</p>
+                </div>
+              </div>
+            </div>
+            <div class="card fade-in">
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center"><i class="fas fa-chart-line text-primary-500 text-sm"></i></div>
+                <span class="font-bold text-gray-900">Logical Competence</span>
+              </div>
+              <div class="flex justify-center" style="height:220px;"><canvas id="radar-chart"></canvas></div>
+              <div class="flex gap-3 mt-3">
+                <div class="stat-card flex-1">
+                  <span class="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Avg. Logic</span>
+                  <p class="text-2xl font-bold text-gray-900 mt-1" id="dash-avg-logic">No record</p>
+                </div>
+                <div class="stat-card flex-1">
+                  <span class="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Rating</span>
+                  <p class="text-2xl font-bold text-primary-500 mt-1" id="dash-rating">UNKNOWN</p>
+                </div>
+              </div>
+            </div>
+            <div id="weakness-card" class="card weakness-card fade-in" style="display:none;">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-8 h-8 bg-warning-light rounded-lg flex items-center justify-center"><i class="fas fa-exclamation-triangle text-warning-dark text-sm"></i></div>
+                <span class="font-bold text-gray-900">Weakness Detected</span>
+              </div>
+              <p class="text-sm text-gray-700 mb-3" id="weakness-text"></p>
+              <div class="bg-orange-50 rounded-lg px-3 py-2 flex items-start gap-2">
+                <i class="fas fa-lightbulb text-warning-dark mt-0.5 text-sm"></i>
+                <span class="text-sm font-semibold text-warning-dark" id="weakness-prompt"></span>
+              </div>
+            </div>
+            <!-- Phase 3C: CTA Suggestions (Option 3C) -->
+            <div id="cta-card" class="card fade-in" style="display:none;">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center"><i class="fas fa-hand-pointer text-blue-500 text-sm"></i></div>
+                <span class="font-bold text-gray-900">다음 행동 제안</span>
+              </div>
+              <div id="cta-buttons" class="space-y-2"></div>
+            </div>
+            <!-- Phase 3C: Trust Markers (Option 3C) -->
+            <div id="trust-card" class="card fade-in" style="display:none;">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center"><i class="fas fa-shield-check text-emerald-500 text-sm"></i></div>
+                <span class="font-bold text-gray-900">신뢰도 마커</span>
+              </div>
+              <div id="trust-markers" class="space-y-1.5"></div>
+            </div>
+            <!-- Phase 3B: Argument Visualization Canvas (Option 3B) -->
+            <div id="arg-graph-card" class="card fade-in" style="display:none;">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center"><i class="fas fa-project-diagram text-indigo-500 text-sm"></i></div>
+                <span class="font-bold text-gray-900">Argument Graph</span>
+                <span class="ml-auto text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">AIF</span>
+                <button onclick="exportXAIFJsonLD()" class="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full cursor-pointer hover:bg-indigo-200 ml-1" title="JSON-LD 내보내기"><i class="fas fa-download mr-1"></i>JSON-LD</button>
+              </div>
+              <div class="relative bg-gray-50 rounded-xl border border-gray-200" style="height:280px; overflow:hidden;">
+                <canvas id="arg-canvas" width="360" height="280" style="width:100%;height:100%;"></canvas>
+              </div>
+              <div class="mt-2 flex items-center gap-3 text-[10px] text-gray-500">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 bg-blue-500 rounded-full inline-block"></span>주장</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 bg-green-500 rounded-full inline-block"></span>근거</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 bg-purple-500 rounded-full inline-block"></span>전제</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 bg-red-500 rounded-full inline-block"></span>반박</span>
+              </div>
+              <div class="mt-2 space-y-1">
+                <div class="flex justify-between text-xs">
+                  <span class="text-gray-500">논증 강도</span>
+                  <span class="font-bold text-indigo-600" id="arg-strength">0%</span>
+                </div>
+                <div class="h-1.5 bg-gray-200 rounded-full"><div class="h-full bg-indigo-500 rounded-full transition-all" id="arg-strength-bar" style="width:0%"></div></div>
+                <div class="flex justify-between text-xs">
+                  <span class="text-gray-500">확립된 논점</span>
+                  <span class="font-bold text-green-600" id="arg-grounded">0</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span class="text-gray-500">결손 발견</span>
+                  <span class="font-bold text-red-600" id="arg-missing">0</span>
+                </div>
+                <!-- Phase 3B: Missing Edge Interactive Tooltips -->
+                <div id="arg-missing-edges" class="mt-2 space-y-1"></div>
+              </div>
+            </div>
+            <div class="card fade-in">
+              <div class="flex items-center justify-between mb-4">
+                <span class="font-bold text-gray-900">Survival Progress</span>
+                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-bold" id="turn-badge">TURN 1 OF 10</span>
+              </div>
+              <div class="relative mb-4">
+                <div class="flex justify-between items-center relative">
+                  <div class="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 -translate-y-1/2 z-0"></div>
+                  <div class="absolute top-1/2 left-0 h-0.5 bg-primary-800 -translate-y-1/2 z-0 transition-all duration-500" id="phase-progress-line" style="width:0%"></div>
+                  <div class="phase-dot active z-10" id="dot-elicitation"></div>
+                  <div class="phase-dot upcoming z-10" id="dot-grounding"></div>
+                  <div class="phase-dot upcoming z-10" id="dot-reasoning"></div>
+                  <div class="phase-dot upcoming z-10" id="dot-counterexample"></div>
+                  <div class="phase-dot upcoming z-10" id="dot-revision"></div>
+                  <div class="phase-dot upcoming z-10" id="dot-synthesis"></div>
+                </div>
+                <div class="flex justify-between mt-2">
+                  <span class="text-[10px] font-bold text-gray-900" id="label-elicitation">주장 명료화</span>
+                  <span class="text-[10px] text-gray-400" id="label-grounding">텍스트 근거</span>
+                  <span class="text-[10px] text-gray-400" id="label-reasoning">추론 연결</span>
+                  <span class="text-[10px] text-gray-400" id="label-counterexample">반례 검토</span>
+                  <span class="text-[10px] text-gray-400" id="label-revision">주장 수정</span>
+                  <span class="text-[10px] text-gray-400" id="label-synthesis">종합 정리</span>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2"><div class="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center"><i class="fas fa-check text-success text-[10px]"></i></div><span class="text-sm text-gray-700">Textual Evidence cited</span></div>
+                  <span class="text-sm font-bold text-gray-900" id="metric-evidence">0/3</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2"><div class="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-shield-alt text-gray-400 text-[10px]"></i></div><span class="text-sm text-gray-700">Logical Fallacies avoided</span></div>
+                  <span class="text-sm font-bold text-gray-900" id="metric-fallacies">0/2</span>
+                </div>
+              </div>
+            </div>
+            <!-- v22 P1-A: Cognitive Process Score Card -->
+            <div class="card fade-in">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center"><i class="fas fa-brain text-emerald-500 text-sm"></i></div>
+                <span class="font-bold text-gray-900">Cognitive Process</span>
+              </div>
+              <div class="text-center">
+                <span class="text-3xl font-bold text-emerald-600" id="process-score-display">-</span>
+                <p class="text-xs text-gray-500 mt-1">인지 과정 점수</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <div class="stat-card flex-1 flex items-center gap-3">
+                <div class="w-10 h-10 bg-primary-50 rounded-lg flex items-center justify-center flex-shrink-0"><i class="fas fa-bolt text-primary-500"></i></div>
+                <div class="text-left"><span class="text-[10px] text-gray-500 uppercase tracking-wider font-bold block">Pace</span><span class="text-xl font-bold text-gray-900" id="dash-pace">No record</span><span class="text-xs text-gray-500"> m/m</span></div>
+              </div>
+              <div class="stat-card flex-1 flex items-center gap-3">
+                <div class="w-10 h-10 bg-primary-50 rounded-lg flex items-center justify-center flex-shrink-0"><i class="fas fa-user-shield text-primary-500"></i></div>
+                <div class="text-left"><span class="text-[10px] text-gray-500 uppercase tracking-wider font-bold block">Credibility</span><span class="text-lg font-bold text-gray-900" id="dash-cred-level">UNKNOWN</span><span class="text-lg font-bold text-gray-900" id="dash-cred-tier"> —</span></div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- LIBRARY TAB -->
+      <div id="tab-library" class="tab-content hidden">
+        <div class="max-w-4xl mx-auto p-4 md:p-8">
+          <div class="mb-6"><h2 class="text-2xl font-bold text-gray-900 mb-2"><i class="fas fa-book-reader text-primary-500 mr-2"></i>도서 목록</h2><p class="text-gray-500">토론할 도서를 선택하거나 새로운 도서를 등록하세요.</p></div>
+          <div class="mb-4 flex gap-3">
+            <div class="flex-1 relative"><i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i><input type="text" id="book-search-input" placeholder="도서 제목, 저자, 챕터 검색..." class="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-primary-300 focus:ring-2 focus:ring-primary-100 transition outline-none" oninput="debounceSearch()"></div>
+            <div class="flex items-center gap-2 bg-gray-50 px-3 rounded-xl border border-gray-200" title="AI 벡터 유사 검색">
+              <span class="text-xs text-gray-500 font-medium whitespace-nowrap">AI 검색</span>
+              <button id="rag-search-toggle" onclick="toggleRAGSearch()" class="relative w-10 h-5 bg-gray-300 rounded-full transition-colors cursor-pointer" aria-label="AI 벡터 검색" aria-pressed="false"><span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform translate-x-0"></span></button>
+            </div>
+            <button onclick="openUploadModal()" class="btn-primary whitespace-nowrap"><i class="fas fa-plus"></i><span class="hidden sm:inline">도서 등록</span></button>
+          </div>
+          <div id="rag-results-section" style="display:none;" class="mb-4"></div>
+          <div id="book-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="text-center py-12 text-gray-400 col-span-2"><i class="fas fa-spinner fa-spin mr-2"></i>도서 목록을 불러오는 중...</div></div>
+        </div>
+      </div>
+
+      <!-- HISTORY TAB -->
+      <div id="tab-history" class="tab-content hidden">
+        <div class="max-w-4xl mx-auto p-4 md:p-8">
+          <div class="mb-8"><h2 class="text-2xl font-bold text-gray-900 mb-2"><i class="fas fa-history text-primary-500 mr-2"></i>세션 히스토리</h2><p class="text-gray-500">이전 토론 세션 기록을 확인하세요.</p></div>
+          <div id="history-list" class="space-y-3"><div class="text-center py-12 text-gray-400">Unknown — 세션 기록을 아직 불러오지 않았습니다.</div></div>
+        </div>
+      </div>
+
+      <!-- TRAINING TAB -->
+      <div id="tab-training" class="tab-content hidden">
+        <div class="max-w-5xl mx-auto p-4 md:p-8">
+          <div class="mb-8"><h2 class="text-2xl font-bold text-gray-900 mb-2"><i class="fas fa-dumbbell text-primary-500 mr-2"></i>훈련</h2><p class="text-gray-500">근거가 있는 실제 문제 또는 명시적으로 가상인 구성 시나리오로 문제 해결을 훈련합니다.</p></div>
+          <div id="training-content">
+            <!-- Category & Difficulty Selection -->
+            <div id="training-selection">
+              <div class="card mb-6" role="group" aria-label="Training mode">
+                <p class="text-sm font-bold text-gray-900 mb-3">훈련 방식</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <button type="button" data-training-mode="evidence" aria-pressed="true" onclick="setTrainingMode('evidence')" class="border-2 border-primary-500 bg-primary-50 rounded-xl p-4 text-left"><span class="font-bold text-sm">근거 기반</span><span class="block text-xs text-gray-600 mt-1">Library 도서 두 권 이상의 근거로 실제 문제를 분석합니다. 기본 8회입니다.</span></button>
+                  <button type="button" data-training-mode="constructed" aria-pressed="false" onclick="setTrainingMode('constructed')" class="border-2 border-gray-200 rounded-xl p-4 text-left"><span class="font-bold text-sm">구성 시나리오</span><span class="block text-xs text-gray-600 mt-1">출처나 실제 사실을 주장하지 않는 가상의 의사결정 연습입니다. 기본 6회입니다.</span></button>
+                </div>
+              </div>
+              <div class="card mb-6 border border-primary-100 bg-primary-50">
+                <p class="text-sm font-bold text-gray-900"><i id="training-mode-summary-icon" class="fas fa-project-diagram text-primary-500 mr-2"></i><span id="training-mode-summary-title">실세계 근거 시나리오</span></p>
+                <p id="training-mode-summary-description" class="text-xs text-gray-600 mt-1">Library 도서 2권 이상의 관점을 결합해 의사결정 문제를 해결합니다. 기본 8회입니다.</p>
+              </div>
+              <section class="card mb-6 border border-primary-200 bg-primary-50" aria-labelledby="training-case-catalog-heading">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 id="training-case-catalog-heading" class="font-bold text-gray-900"><i class="fas fa-flag-checkered text-primary-500 mr-2"></i>첫 사례로 시작</h3>
+                    <p class="text-xs text-gray-600 mt-1">서버가 제공한 공개 출처와 근거 계약을 사용합니다. 아래 일반 훈련은 별도로 직접 설정할 수 있습니다.</p>
+                  </div>
+                  <span class="text-xs font-bold text-primary-700 bg-white px-3 py-1 rounded-full whitespace-nowrap">한국어 사례</span>
+                </div>
+                <div id="training-case-catalog" class="mt-4 grid grid-cols-1 gap-3" aria-live="polite">
+                  <p class="text-sm text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>시작할 사례를 불러오는 중...</p>
+                </div>
+              </section>
+              <section id="training-evidence-config" class="card mb-6" aria-labelledby="training-evidence-heading">
+                <div class="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <h3 id="training-evidence-heading" class="font-bold text-gray-900"><i class="fas fa-link text-primary-500 mr-2"></i>도서 근거</h3>
+                    <p class="text-xs text-gray-500 mt-1">서로 다른 도서에서 최소 2개 관점을 고르세요. 생성 후 근거 스냅샷은 변경되지 않습니다.</p>
+                  </div>
+                  <span class="text-xs font-bold text-primary-700 bg-primary-50 px-3 py-1 rounded-full whitespace-nowrap">근거 필수</span>
+                </div>
+                <label for="training-evidence-query" class="block text-sm font-bold text-gray-700 mb-2">해결할 실제 문제</label>
+                <textarea id="training-evidence-query" class="w-full p-3 border border-gray-200 rounded-xl text-sm focus:border-primary-400 outline-none" rows="3" maxlength="600" placeholder="예: 조직의 성과 압박과 개인의 덕 윤리를 함께 고려해 AI 채용 시스템 도입 원칙을 설계하라" oninput="updateTrainingEvidenceQuery()"></textarea>
+                <div class="flex items-center justify-between gap-3 mt-4 mb-2">
+                  <p class="text-sm font-bold text-gray-700">근거 도서</p>
+                  <p id="training-evidence-count" class="text-xs text-gray-500">0권 선택</p>
+                </div>
+                 <div id="training-evidence-books" class="grid grid-cols-1 md:grid-cols-2 gap-2" aria-live="polite">
+                   <p class="text-sm text-gray-400 col-span-2"><i class="fas fa-spinner fa-spin mr-2"></i>Library를 불러오는 중...</p>
+                 </div>
+                 <label for="training-evidence-max-turns" class="block text-sm font-bold text-gray-700 mt-4 mb-2">훈련 턴 수 <span class="text-xs font-normal text-gray-500">기본 8회 · 1~10회 선택</span></label>
+                 <input id="training-evidence-max-turns" type="number" min="1" max="10" step="1" value="8" inputmode="numeric" class="w-full p-3 border border-gray-200 rounded-xl text-sm focus:border-primary-400 outline-none" oninput="updateTrainingTurns()" aria-describedby="training-evidence-turns-help">
+                 <p id="training-evidence-turns-help" class="text-xs text-gray-500 mt-1">선택한 턴 수는 이 세션에 저장되며, 재개와 기록에서 동일하게 표시됩니다.</p>
+                 <p id="training-evidence-status" class="text-xs text-gray-500 mt-3" aria-live="polite">문제와 근거 도서 2권을 선택하면 시작할 수 있습니다.</p>
+              </section>
+              <section id="training-constructed-config" class="card mb-6 border border-amber-200 bg-amber-50" hidden aria-labelledby="training-constructed-heading">
+                <h3 id="training-constructed-heading" class="font-bold text-amber-900"><i class="fas fa-chess mr-2"></i>가상 구성 시나리오</h3>
+                 <p class="text-xs text-amber-800 mt-1">이 모드는 허구의 연습입니다. Library 도서는 필요하지 않으며, 출처·URL·실제 사실을 제공하거나 주장하지 않습니다.</p>
+                 <label for="training-constructed-focus" class="block text-sm font-bold text-amber-900 mt-4 mb-2">선택적 초점</label>
+                 <input id="training-constructed-focus" class="w-full p-3 border border-amber-200 rounded-xl text-sm" maxlength="200" placeholder="예: 제한된 예산에서 지역 문화공간의 운영 방향 결정">
+                 <label for="training-constructed-max-turns" class="block text-sm font-bold text-amber-900 mt-4 mb-2">훈련 턴 수 <span class="text-xs font-normal text-amber-800">기본 6회 · 1~10회 선택</span></label>
+                 <input id="training-constructed-max-turns" type="number" min="1" max="10" step="1" value="6" inputmode="numeric" class="w-full p-3 border border-amber-200 rounded-xl text-sm" oninput="updateTrainingTurns()" aria-describedby="training-constructed-turns-help">
+                 <p id="training-constructed-turns-help" class="text-xs text-amber-800 mt-1">선택한 턴 수는 이 세션에 저장되며, 재개와 기록에서 동일하게 표시됩니다.</p>
+               </section>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-3">카테고리</label>
+                  <div class="grid grid-cols-3 gap-3" id="training-categories" aria-live="polite">
+                    <p class="text-sm text-gray-500 col-span-3">카테고리를 불러오는 중입니다.</p>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-3">난이도</label>
+                  <div class="flex flex-col gap-3" id="training-difficulties">
+                    <button onclick="selectTrainingDifficulty('beginner')" data-diff="beginner" class="training-diff-btn card flex items-center gap-3 py-3 px-4 hover:border-primary-500 transition cursor-pointer border-2 border-transparent"><i class="fas fa-seedling text-green-400 text-lg"></i><div><span class="font-bold text-sm">초급</span><p class="text-xs text-gray-400">기본 개념 적용</p></div></button>
+                    <button onclick="selectTrainingDifficulty('intermediate')" data-diff="intermediate" class="training-diff-btn card flex items-center gap-3 py-3 px-4 hover:border-primary-500 transition cursor-pointer border-2 border-transparent"><i class="fas fa-fire text-orange-400 text-lg"></i><div><span class="font-bold text-sm">중급</span><p class="text-xs text-gray-400">전략적 분석 필요</p></div></button>
+                    <button onclick="selectTrainingDifficulty('advanced')" data-diff="advanced" class="training-diff-btn card flex items-center gap-3 py-3 px-4 hover:border-primary-500 transition cursor-pointer border-2 border-transparent"><i class="fas fa-bolt text-red-400 text-lg"></i><div><span class="font-bold text-sm">고급</span><p class="text-xs text-gray-400">창의적 해결과 장기 비전</p></div></button>
+                  </div>
+                </div>
+              </div>
+              <div class="text-center"><button type="button" onclick="startTraining()" id="training-start-btn" class="btn-primary text-lg px-8 py-3" disabled><i id="training-start-icon" class="fas fa-project-diagram mr-2"></i><span id="training-start-label">근거 시나리오 생성</span></button></div>
+            </div>
+            <!-- Training Session -->
+            <div id="training-session" style="display:none;">
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                  <div class="card mb-4" id="training-question-card">
+                    <h3 class="font-bold text-gray-900 mb-2" id="training-q-title"></h3>
+                    <p class="text-gray-700 leading-relaxed mb-3" id="training-question-text"></p>
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded text-sm text-gray-600" id="training-context"></div>
+                    <div id="training-grounding" class="mt-3"></div>
+                    <div id="training-briefing" class="mt-3"></div>
+                    <section id="training-route-panel" class="training-route-panel" aria-label="학습 순서" hidden></section>
+                  </div>
+                  <div class="card">
+                    <div id="training-messages" class="space-y-4 mb-4 max-h-[400px] overflow-y-auto scrollbar-thin"></div>
+                    <section id="training-control-panel" class="training-route-panel" aria-label="도움과 휴식" hidden></section>
+                    <section id="training-revision-panel" class="training-route-panel" aria-label="내 생각의 수정 기록" hidden></section>
+                    <div class="flex gap-3">
+                      <textarea id="training-input" class="flex-1 p-3 border border-gray-200 rounded-xl text-sm" placeholder="당신의 답변을 입력하세요..." rows="3" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitTrainingMessage()}"></textarea>
+                      <div class="flex flex-col gap-2">
+                        <button onclick="submitTrainingMessage()" class="btn-primary text-sm" id="training-submit-btn" aria-label="Training 답변 제출"><i class="fas fa-paper-plane" aria-hidden="true"></i></button>
+                        <button id="training-hint-btn" onclick="requestTrainingHint()" class="btn-secondary text-sm" title="힌트 요청" aria-label="Training 힌트 요청" disabled aria-disabled="true" aria-describedby="training-hint-unavailable-reason"><i class="fas fa-lightbulb" aria-hidden="true"></i></button>
+                      </div>
+                    </div>
+                    <p id="training-hint-unavailable-reason" class="mt-2 text-xs text-amber-700">근거 기반 훈련에서는 힌트를 사용할 수 없습니다.</p>
+                  </div>
+                </div>
+                <!-- Right Panel -->
+                <div>
+                  <div class="card mb-4">
+                    <h3 class="font-bold text-gray-900 mb-2 text-sm"><i class="fas fa-compass text-primary-500 mr-1"></i>현재 상태</h3>
+                    <div class="space-y-2 text-sm">
+                      <div class="flex justify-between"><span class="text-gray-500">상태</span><span class="font-bold text-primary-600" id="tr-state">elicitation</span></div>
+                      <div class="flex justify-between"><span class="text-gray-500">목표</span><span class="font-bold text-gray-700 text-xs" id="tr-goal">-</span></div>
+                      <div class="flex justify-between"><span class="text-gray-500">턴</span><span class="font-bold" id="tr-turn">1/8</span></div>
+                      <div class="flex justify-between"><span class="text-gray-500">힌트 레벨</span><span class="font-bold" id="tr-hint">H0</span></div>
+                      <div class="flex justify-between"><span class="text-gray-500">수정 기록</span><span class="font-bold" id="tr-revision">0건 · 미검증</span></div>
+                    </div>
+                  </div>
+                  <div class="card mb-4">
+                    <h3 class="font-bold text-gray-900 mb-2 text-sm"><i class="fas fa-chart-bar text-primary-500 mr-1"></i>평가</h3>
+                    <div class="space-y-1 text-sm" id="tr-scores">
+                      <div class="flex items-center gap-2"><span class="text-gray-500 w-16">주장</span><div class="flex-1 bg-gray-100 rounded-full h-2"><div class="bg-primary-500 h-2 rounded-full" style="width:0%" id="tr-bar-claim"></div></div><span class="font-bold w-6 text-right" id="tr-sc-claim">—</span></div>
+                      <div class="flex items-center gap-2"><span class="text-gray-500 w-16">근거</span><div class="flex-1 bg-gray-100 rounded-full h-2"><div class="bg-green-500 h-2 rounded-full" style="width:0%" id="tr-bar-evidence"></div></div><span class="font-bold w-6 text-right" id="tr-sc-evidence">—</span></div>
+                      <div class="flex items-center gap-2"><span class="text-gray-500 w-16">추론</span><div class="flex-1 bg-gray-100 rounded-full h-2"><div class="bg-blue-500 h-2 rounded-full" style="width:0%" id="tr-bar-reasoning"></div></div><span class="font-bold w-6 text-right" id="tr-sc-reasoning">—</span></div>
+                      <div class="flex items-center gap-2"><span class="text-gray-500 w-16">일관성</span><div class="flex-1 bg-gray-100 rounded-full h-2"><div class="bg-yellow-500 h-2 rounded-full" style="width:0%" id="tr-bar-consistency"></div></div><span class="font-bold w-6 text-right" id="tr-sc-consistency">—</span></div>
+                      <div class="flex items-center gap-2"><span class="text-gray-500 w-16">관련성</span><div class="flex-1 bg-gray-100 rounded-full h-2"><div class="bg-red-500 h-2 rounded-full" style="width:0%" id="tr-bar-relevance"></div></div><span class="font-bold w-6 text-right" id="tr-sc-relevance">—</span></div>
+                    </div>
+                  </div>
+                  <div class="card">
+                    <h3 class="font-bold text-gray-900 mb-2 text-sm"><i class="fas fa-exclamation-triangle text-warning mr-1"></i>약점</h3>
+                    <div id="tr-weakness" class="text-sm text-gray-500">아직 없음</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Training History -->
+            <div id="training-history" style="display:none;" class="mt-8">
+              <h3 class="font-bold text-gray-900 mb-4"><i class="fas fa-history text-gray-400 mr-2"></i>이전 Training 세션</h3>
+              <div id="training-history-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEBATE ARENA TAB (v22 CRITICAL-F01) -->
+      <div id="tab-neuralwiki" class="tab-content hidden">
+        <div class="max-w-6xl mx-auto p-4 md:p-8 space-y-4">
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div><h2 class="text-2xl font-bold text-gray-900">Neural Wiki</h2><p class="text-sm text-gray-500">개념 관계와 내 학습 기록을 분리해 보여줍니다.</p></div>
+            <label class="text-sm text-gray-700">도메인 <select id="neural-wiki-domain" class="ml-2 rounded-lg border border-gray-200 px-3 py-2" onchange="loadNeuralWiki()"><option value="meditations_4">Meditations IV</option><option value="logic_reasoning">논리와 추론</option><option value="microeconomics">미시경제학</option><option value="rhetoric">수사학</option><option value="statistical_inference">통계적 추론</option></select></label>
+          </div>
+          <div id="neural-wiki-loading" class="card text-sm text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>학습 그래프를 불러오는 중입니다.</div>
+          <div id="neural-wiki-empty" class="card hidden text-sm text-gray-500">이 도메인에는 아직 표시할 개념 그래프가 없습니다.</div>
+          <div id="neural-wiki-unavailable" class="card hidden text-sm text-amber-800">Neural Wiki를 지금 불러올 수 없습니다. 인증 또는 서버 상태를 확인한 뒤 다시 시도하세요.</div>
+          <div id="neural-wiki-graph" class="card min-h-[480px]"></div>
+           <section id="neural-wiki-selected" class="card hidden">
+            <h3 id="neural-wiki-node-title" class="font-bold text-gray-900">그래프에서 개념을 선택하세요.</h3>
+            <p id="neural-wiki-node-description" class="mt-2 text-sm text-gray-600"></p>
+            <p class="mt-3 text-xs font-bold text-gray-500">핵심 본질</p><p id="neural-wiki-node-essence" class="text-sm text-gray-700"></p>
+            <p class="mt-3 text-xs text-gray-500">학습 모델 추정치 (검증되지 않음): <span id="neural-wiki-node-mastery">기록 없음</span></p>
+             <p id="neural-wiki-taiji-status" class="mt-4 text-sm text-amber-800"></p>
+           </section>
+           <section id="neural-wiki-evidence-model" class="card" aria-live="polite">
+             <h3 class="font-bold text-gray-900">내 수정 가능한 근거 모델</h3>
+             <p class="mt-2 text-sm text-gray-600">참조 그래프와 별도의 내 수정 가능한 근거 모델 기록입니다. 이 기록은 숙련도, 진단, 보정 또는 학습 효과의 증거가 아닙니다.</p>
+             <p class="mt-3 text-sm text-gray-500">수정 기록을 불러오는 중입니다.</p>
+           </section>
+         </div>
+       </div>
+
+      <div id="tab-debate" class="tab-content hidden">
+        <div class="max-w-4xl mx-auto p-4 md:p-8">
+          <div class="flex justify-between items-center mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 mb-1"><i class="fas fa-users text-primary-500 mr-2"></i>Debate Arena</h2>
+              <p class="text-gray-500">AI Critic · Advocate · Moderator와 함께 다중 관점 토론을 경험하세요.</p>
+            </div>
+            <button onclick="showCreateDebateModal()" class="btn-primary"><i class="fas fa-plus"></i> 새 토론방</button>
+          </div>
+          <div id="debate-rooms-list" class="space-y-4">
+            <div class="text-center py-12 text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i>토론방 목록을 불러오는 중...</div>
+          </div>
+          <!-- Active Debate Chat Area -->
+          <div id="debate-chat-area" style="display:none;" class="mt-6">
+            <div class="card mb-4">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-gray-900" id="debate-room-topic">토론 주제</h3>
+                <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold" id="debate-room-status">OPEN</span>
+              </div>
+              <div id="debate-messages" class="bg-gray-50 rounded-xl p-4 max-h-[400px] overflow-y-auto space-y-3 scrollbar-thin mb-4">
+              </div>
+              <div class="flex gap-2">
+                <input type="text" id="debate-input" class="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-primary-300 outline-none" placeholder="토론 발언을 입력하세요..." onkeydown="if(event.key==='Enter')submitDebateTurn()">
+                <button onclick="submitDebateTurn()" class="btn-primary text-sm" id="debate-submit-btn"><i class="fas fa-paper-plane"></i> 발언</button>
+              </div>
+            </div>
+            <div id="debate-ai-responses" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERSONAL DASHBOARD TAB -->
+      <div id="tab-dashboard" class="tab-content hidden">
+        <div class="max-w-5xl mx-auto p-4 md:p-8">
+          <div class="mb-8"><h2 class="text-2xl font-bold text-gray-900 mb-2"><i class="fas fa-chart-pie text-primary-500 mr-2"></i>내 대시보드</h2><p class="text-gray-500">나의 학습 성과와 발전 추이를 확인하세요.</p></div>
+          <div id="personal-dashboard-content">
+            <div class="text-center py-12"><i class="fas fa-spinner fa-spin text-primary-500 text-xl"></i><p class="text-gray-500 mt-2">데이터를 불러오는 중...</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLASSCHAT TAB (v33) -->
+      <div id="tab-classchat" class="tab-content hidden">
+        <div class="max-w-4xl mx-auto p-4 md:p-8">
+          <div class="flex justify-between items-center mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900 mb-1"><i class="fas fa-people-arrows text-primary-500 mr-2"></i>ClassChat</h2>
+              <p class="text-gray-500">동료 학습자와 AI 퍼실리테이터가 함께하는 협력적 논증 학습</p>
+            </div>
+            <button onclick="showCreateClassChatModal()" class="btn-primary"><i class="fas fa-plus"></i> 새 ClassChat</button>
+          </div>
+          <div id="classchat-rooms-list" class="space-y-4">
+            <div class="text-center py-12 text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i>ClassChat 방 불러오는 중...</div>
+          </div>
+          <div id="classchat-chat-area" style="display:none;" class="mt-6">
+            <div class="card mb-4">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-gray-900" id="cc-room-topic">토론 주제</h3>
+                <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">LIVE</span>
+              </div>
+              <div id="cc-messages" class="bg-gray-50 rounded-xl p-4 max-h-[400px] overflow-y-auto space-y-3 scrollbar-thin mb-4"></div>
+              <div class="flex gap-2">
+                <input type="text" id="cc-input" class="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-primary-300 outline-none" placeholder="토론 발언을 입력하세요..." onkeydown="if(event.key==='Enter')submitClassChatMessage()">
+                <button onclick="submitClassChatMessage()" class="btn-primary text-sm"><i class="fas fa-paper-plane"></i> 발언</button>
+              </div>
+            </div>
+            <div id="cc-facilitator-card" class="card bg-indigo-50 border-indigo-200" style="display:none;">
+              <div class="flex items-center gap-2 mb-2">
+                <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center"><i class="fas fa-robot text-white text-sm"></i></div>
+                <span class="font-bold text-indigo-900">AI Facilitator</span>
+              </div>
+              <p class="text-sm text-indigo-800" id="cc-facilitator-msg"></p>
+              <div id="cc-missing-perspectives" class="mt-2 space-y-1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRIVATE PARTICIPANT GROWTH LAB TAB (v36) -->
+      <div id="tab-growth-lab" class="tab-content hidden">
+        <main class="growth-lab-shell" aria-labelledby="growth-lab-title">
+          <header class="growth-lab-introduction">
+            <p class="growth-eyebrow">비공개 학습 공간</p>
+            <h1 id="growth-lab-title">성장 실험실</h1>
+            <p>비공개 근거에서 다음 학습 행동으로 이어지는 주기를 살펴봅니다. 연습을 직접 선택하고 나중에 재확인할 수 있지만, 순위를 매기거나 진단하거나 사람을 분류하지 않습니다.</p>
+          </header>
+          <p id="growth-lab-status" class="growth-live-status" role="status" aria-live="polite" aria-atomic="true">성장 실험실을 아직 불러오지 않았습니다.</p>
+          <div id="growth-lab-content" aria-busy="false"></div>
+        </main>
+      </div>
+
+      <!-- HRD PROGRAM OPERATOR TAB (v35.1) -->
+      <div id="tab-hrd-program" class="tab-content hidden">
+        <main class="max-w-7xl mx-auto p-4 md:p-8" aria-labelledby="hrd-program-title">
+          <div class="mb-6">
+            <p class="text-xs font-bold uppercase tracking-[0.12em] text-primary-600">HRD Program</p>
+            <h1 id="hrd-program-title" class="mt-1 text-2xl font-extrabold text-gray-900 md:text-3xl">Program evidence review</h1>
+            <p class="mt-2 max-w-3xl text-sm text-gray-600">Review authorized program enrollments and inspect rubric-pinned competency evidence without inferring missing observations.</p>
+          </div>
+          <div id="hrd-program-content" aria-live="polite"></div>
+        </main>
+      </div>
+
+      <!-- ENTERPRISE HRD DASHBOARD TAB (v31) -->
+      <div id="tab-enterprise" class="tab-content hidden">
+        <div class="max-w-6xl mx-auto p-4 md:p-8">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-1"><i class="fas fa-building text-primary-500 mr-2"></i>조직 학습 대시보드</h2>
+            <p class="text-gray-500">권한이 있는 관리자가 조직의 학습 활동과 기록 충실도를 확인합니다.</p>
+          </div>
+          <div class="flex gap-3 mb-6 overflow-x-auto border-b border-gray-200">
+            <button class="nav-tab active" data-enttab="overview" onclick="switchEnterpriseTab('overview')">조직 개요</button>
+            <button class="nav-tab" data-enttab="team-radar" onclick="switchEnterpriseTab('team-radar')">팀 레이더</button>
+            <button class="nav-tab" data-enttab="roi" onclick="switchEnterpriseTab('roi')">ROI 분석</button>
+            <button class="nav-tab" data-enttab="fidelity" onclick="switchEnterpriseTab('fidelity')">기록 충실도</button>
+          </div>
+          <div id="enterprise-content">
+            <div class="text-center py-12"><i class="fas fa-spinner fa-spin text-primary-500 text-xl"></i><p class="text-gray-500 mt-2">대시보드 데이터 로딩 중...</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN TAB -->
+      <div id="tab-admin" class="tab-content hidden">
+        <div class="max-w-6xl mx-auto p-4 md:p-8">
+          <div class="mb-6 flex items-center justify-between flex-wrap gap-4">
+            <div><h2 class="text-2xl font-bold text-gray-900 mb-1"><i class="fas fa-users-cog text-primary-500 mr-2"></i>관리자 대시보드</h2><p class="text-gray-500">동아리 부원 관리 및 전체 통계를 확인하세요.</p></div>
+            <div class="flex gap-2">
+              <button onclick="loadAdminOverview()" class="btn-secondary text-sm"><i class="fas fa-sync-alt"></i> 새로고침</button>
+              <button onclick="openAddUserModal()" class="btn-primary text-sm"><i class="fas fa-user-plus"></i> 부원 추가</button>
+            </div>
+          </div>
+          <!-- Admin sub-tabs -->
+          <div class="flex gap-3 mb-6 overflow-x-auto border-b border-gray-200">
+            <button class="nav-tab active" data-admintab="overview" onclick="switchAdminTab('overview')">전체 통계</button>
+            <button class="nav-tab" data-admintab="users" onclick="switchAdminTab('users')">부원 관리</button>
+            <button class="nav-tab" data-admintab="ranking" onclick="switchAdminTab('ranking')">성과 순위</button>
+            <button class="nav-tab" data-admintab="attrition" onclick="switchAdminTab('attrition')">이탈 분석</button>
+            <button class="nav-tab" data-admintab="tokens" onclick="switchAdminTab('tokens')">토큰 비용</button>
+            <button class="nav-tab" data-admintab="arc" onclick="switchAdminTab('arc')">ARC 관리</button>
+            <button class="nav-tab" data-admintab="teacher" onclick="switchAdminTab('teacher')">📊 교사 대시보드</button>
+            <button class="nav-tab" data-admintab="counterfactual" onclick="switchAdminTab('counterfactual')">🔮 반사실적 코칭</button>
+          </div>
+          <div id="admin-content"><div class="text-center py-12"><i class="fas fa-spinner fa-spin text-primary-500 text-xl"></i></div></div>
+        </div>
+      </div>
+    </div><!-- end main-app -->
+  </div><!-- end app -->
+
+  <!-- Session Config Modal (Phase 3: Library → Session Setup) -->
+  <div id="session-config-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="session-config-title" tabindex="-1" onclick="if(event.target===this)closeSessionConfigModal()">
+    <div class="modal-content fade-in" style="max-width:520px;">
+      <div class="flex items-center justify-between mb-6">
+        <h3 id="session-config-title" class="text-lg font-bold text-gray-900"><i class="fas fa-cog text-primary-500 mr-2"></i>세션 설정</h3>
+        <button onclick="closeSessionConfigModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center" aria-label="세션 설정 닫기"><i class="fas fa-times" aria-hidden="true"></i></button>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-4 mb-4">
+        <p class="text-xs text-gray-500 uppercase mb-1">선택된 도서</p>
+        <p class="font-bold text-gray-900" id="scm-book-title">-</p>
+        <p class="text-xs text-gray-500" id="scm-book-author">-</p>
+      </div>
+      <div class="mb-5">
+        <p class="text-sm font-bold text-gray-700 mb-3">세션 모드 선택</p>
+        <div class="space-y-2">
+          <button onclick="setSessionConfigMode('sparring','initial_claim')" id="scm-sparring-initial" class="w-full text-left px-4 py-3 rounded-xl border-2 border-primary-300 bg-primary-50 transition hover:border-primary-400" aria-pressed="true">
+            <div class="flex items-center gap-3"><i class="fas fa-comments text-primary-500 text-lg"></i><div><p class="font-bold text-gray-900 text-sm">스파링 - 초기 입장 정하기</p><p class="text-xs text-gray-500">텍스트에 대한 나의 기본 주장부터 시작합니다.</p></div></div>
+          </button>
+          <button onclick="setSessionConfigMode('sparring','deep_reading_question')" id="scm-sparring-deep" class="w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 bg-white transition hover:border-primary-200" aria-pressed="false">
+            <div class="flex items-center gap-3"><i class="fas fa-book-reader text-indigo-500 text-lg"></i><div><p class="font-bold text-gray-900 text-sm">스파링 - 심화 독해 질문</p><p class="text-xs text-gray-500">핵심 주제/구절 해석 중심의 고급 질문으로 시작합니다.</p></div></div>
+          </button>
+          <button onclick="setSessionConfigMode('training',null)" id="scm-training" class="w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 bg-white transition hover:border-primary-200" aria-pressed="false">
+            <div class="flex items-center gap-3"><i class="fas fa-dumbbell text-orange-500 text-lg"></i><div><p class="font-bold text-gray-900 text-sm">Training = Scenario</p><p class="text-xs text-gray-500">선택한 도서를 첫 근거로 추가하고, 학제간 문제를 구성합니다.</p></div></div>
+          </button>
+        </div>
+      </div>
+      <div class="session-config-actions flex gap-3 justify-end">
+        <button onclick="closeSessionConfigModal()" class="btn-secondary">취소</button>
+        <button onclick="confirmSessionConfig()" class="btn-primary" id="scm-start-btn"><i class="fas fa-play"></i> 시작</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="growth-delete-modal" class="growth-delete-modal" role="dialog" aria-modal="true" aria-labelledby="growth-delete-modal-title" aria-describedby="growth-delete-modal-copy" tabindex="-1" hidden>
+    <div class="growth-delete-modal-card">
+      <div class="growth-delete-modal-header">
+        <h2 id="growth-delete-modal-title" class="growth-note-title">비공개 주기 삭제 확인</h2>
+        <button id="growth-delete-modal-close" type="button" class="growth-delete-modal-close" aria-label="삭제 확인 창 닫기"><i class="fas fa-times" aria-hidden="true"></i></button>
+      </div>
+      <p id="growth-delete-modal-copy" class="growth-note-copy">이 화면에서는 삭제를 되돌릴 수 없습니다.</p>
+      <div class="growth-inline-actions">
+        <button id="growth-delete-modal-cancel" type="button" class="growth-button growth-button-secondary">취소</button>
+        <button id="growth-delete-modal-confirm" type="button" class="growth-button growth-button-danger">삭제 확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <div id="report-modal" class="report-overlay" style="display:none;">
+    <div class="report-content">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-trophy text-primary-500 text-2xl"></i></div>
+        <h2 class="text-2xl font-bold text-gray-900">세션 완료!</h2><p class="text-gray-500 mt-1">성장 리포트</p>
+      </div>
+      <div id="report-body"></div>
+      <div class="flex gap-3 justify-center mt-6 flex-wrap">
+        <button onclick="requestBadgeFromReport()" class="btn-secondary" id="report-badge-btn"><i class="fas fa-award text-amber-500"></i> 배지 발급 요청</button>
+        <button onclick="closeReport()" class="btn-secondary"><i class="fas fa-home"></i> 홈으로</button>
+        <button onclick="closeReport(); switchTab('history');" class="btn-primary"><i class="fas fa-chart-bar"></i> 히스토리 보기</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeSettings()">
+    <div class="modal-content fade-in">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-bold text-gray-900"><i class="fas fa-cog text-primary-500 mr-2"></i>세션 설정</h3>
+        <button onclick="closeSettings()" class="text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="mb-6">
+        <label class="text-sm font-bold text-gray-700 mb-3 block">힌트 레벨 조절</label>
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer hover:bg-gray-50"><input type="radio" name="hint-level" value="0" checked class="accent-primary-500" onchange="setHintLevel(0)"><div><span class="font-semibold text-gray-900">Level 0</span><p class="text-xs text-gray-500">추상적 질문만</p></div></label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer hover:bg-gray-50"><input type="radio" name="hint-level" value="1" class="accent-primary-500" onchange="setHintLevel(1)"><div><span class="font-semibold text-gray-900">Level 1</span><p class="text-xs text-gray-500">챕터/범위 언급</p></div></label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer hover:bg-gray-50"><input type="radio" name="hint-level" value="2" class="accent-primary-500" onchange="setHintLevel(2)"><div><span class="font-semibold text-gray-900">Level 2</span><p class="text-xs text-gray-500">키워드 직접 언급</p></div></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="upload-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeUploadModal()">
+    <div class="modal-content fade-in">
+      <div class="flex items-center justify-between mb-6"><h3 class="text-lg font-bold text-gray-900"><i class="fas fa-upload text-primary-500 mr-2"></i>도서 등록</h3><button onclick="closeUploadModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"><i class="fas fa-times"></i></button></div>
+      <div id="upload-zone" class="upload-zone mb-4" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleFileDrop(event)" onclick="document.getElementById('file-input').click()">
+        <i class="fas fa-cloud-upload-alt text-gray-400 text-3xl mb-3"></i><p class="text-gray-600 font-medium">파일 드래그 또는 클릭</p><p class="text-xs text-gray-400 mt-1">.txt, .pdf, .epub · 추출 본문 최대 500,000자 · 내 계정에 비공개 저장</p>
+        <input type="file" id="file-input" accept=".txt,.pdf,.epub" style="display:none" onchange="handleFileSelect(event)">
+      </div>
+      <div id="parse-progress" class="mb-4 hidden"><div class="flex items-center gap-2 text-sm text-primary-600"><i class="fas fa-spinner fa-spin"></i><span id="parse-progress-text">파일 파싱 중...</span></div><div class="w-full bg-gray-200 rounded-full h-1.5 mt-2"><div id="parse-bar" class="bg-primary-500 h-1.5 rounded-full transition-all" style="width:0%"></div></div></div>
+      <div class="space-y-3">
+        <div><label class="text-sm font-bold text-gray-700 block mb-1">제목 *</label><input type="text" id="upload-title" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-primary-300 outline-none" placeholder="도서 제목"></div>
+        <div><label class="text-sm font-bold text-gray-700 block mb-1">저자 *</label><input type="text" id="upload-author" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-primary-300 outline-none" placeholder="저자명"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="text-sm font-bold text-gray-700 block mb-1">챕터</label><input type="text" id="upload-chapter" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-primary-300 outline-none" placeholder="예: 제1권"></div>
+          <div><label class="text-sm font-bold text-gray-700 block mb-1">언어</label><select id="upload-language" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm"><option value="ko">한국어</option><option value="en">English</option></select></div>
+        </div>
+        <div><label class="text-sm font-bold text-gray-700 block mb-1">텍스트 *</label><textarea id="upload-text" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none" rows="5" placeholder="텍스트를 입력하거나 파일을 업로드..."></textarea><p class="text-xs text-gray-400 mt-1" id="upload-text-count">0자</p></div>
+      </div>
+      <div class="flex gap-3 justify-end mt-6"><button onclick="closeUploadModal()" class="btn-secondary">취소</button><button onclick="uploadBook()" class="btn-primary" id="upload-submit-btn"><i class="fas fa-upload"></i> 등록하기</button></div>
+    </div>
+  </div>
+
+  <div id="history-detail-modal" class="report-overlay" role="dialog" aria-modal="true" aria-labelledby="history-detail-title" tabindex="-1" style="display:none;" onclick="if(event.target===this)closeHistoryDetail()">
+    <div class="report-content fade-in">
+      <div class="flex items-center justify-between mb-4"><h2 id="history-detail-title" tabindex="-1" class="text-lg font-bold text-gray-900"><i class="fas fa-scroll text-primary-500 mr-2" aria-hidden="true"></i>원본 대화와 근거</h2><button type="button" aria-label="기록 닫기" onclick="closeHistoryDetail()" class="text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"><span aria-hidden="true">×</span></button></div>
+      <div id="history-detail-body"></div>
+    </div>
+  </div>
+
+  <div id="delete-session-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeDeleteDialog()">
+    <div class="modal-content fade-in" style="max-width:480px;">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900"><i class="fas fa-trash-alt text-red-500 mr-2"></i>세션 삭제</h3>
+        <button onclick="closeDeleteDialog()" class="text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="bg-red-50 border border-red-100 rounded-xl p-4 mb-5">
+        <p class="text-sm font-semibold text-red-700 mb-1">이 작업은 되돌릴 수 없습니다.</p>
+        <p class="text-xs text-red-600">세션 대화 기록과 평가 데이터가 함께 삭제됩니다.</p>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-4 mb-6">
+        <p class="text-xs text-gray-500 uppercase mb-1">삭제 대상</p>
+        <p id="delete-session-title" class="font-semibold text-gray-900">-</p>
+      </div>
+      <div class="flex gap-3 justify-end">
+        <button onclick="closeDeleteDialog()" class="btn-secondary">취소</button>
+        <button onclick="confirmDeleteSession()" class="btn-danger"><i class="fas fa-trash-alt"></i> 삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- v26: Mobile Bottom Navigation -->
+  <nav id="mobile-bottom-nav" class="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 z-50 safe-area-pb" style="display:none;" aria-label="Mobile primary navigation">
+    <div class="mobile-nav-primary">
+      <button type="button" onclick="switchTab('library')" class="mobile-nav-btn" data-navigation-control data-mobile-group="learn" data-tab="library" data-auth-required="true" data-role-required="student,instructor,admin" aria-label="Learn, opens Library">
+        <i class="fas fa-book-open" aria-hidden="true"></i>
+        <span>Learn</span>
+      </button>
+      <button type="button" onclick="switchTab('history')" class="mobile-nav-btn" data-navigation-control data-mobile-group="progress" data-tab="history" data-auth-required="true" data-role-required="student,instructor,admin" aria-label="Progress, opens History">
+        <i class="fas fa-chart-line" aria-hidden="true"></i>
+        <span>Progress</span>
+      </button>
+      <button type="button" onclick="toggleMobileMore()" class="mobile-nav-btn" id="mobile-more-btn" data-mobile-group="more" aria-expanded="false" aria-controls="mobile-more-menu">
+        <i class="fas fa-ellipsis-h" aria-hidden="true"></i>
+        <span>More</span>
+      </button>
+    </div>
+    <div id="mobile-more-menu" class="navigation-menu mobile-more-menu" role="group" aria-label="More destinations" aria-hidden="true" hidden>
+      <div class="navigation-menu-heading">
+        <span>More</span>
+        <button type="button" class="navigation-menu-close" onclick="closeMobileMore(true)" aria-label="Close More menu"><i class="fas fa-times" aria-hidden="true"></i></button>
+      </div>
+      <div class="mobile-more-grid">
+        <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="training" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('training', { focusDestination: true })"><i class="fas fa-dumbbell" aria-hidden="true"></i><span>훈련</span></button>
+        <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="growth-lab" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('growth-lab', { focusDestination: true })"><i class="fas fa-seedling" aria-hidden="true"></i><span>성장 실험실</span></button>
+        <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="neuralwiki" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('neuralwiki', { focusDestination: true })"><i class="fas fa-project-diagram" aria-hidden="true"></i><span>Neural Wiki</span></button>
+        <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="debate" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('debate', { focusDestination: true })"><i class="fas fa-comments" aria-hidden="true"></i><span>Debate</span></button>
+        <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="classchat" data-auth-required="true" data-role-required="student,instructor,admin" onclick="switchTab('classchat', { focusDestination: true })"><i class="fas fa-people-arrows" aria-hidden="true"></i><span>ClassChat</span></button>
+        <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="hrd-program" data-auth-required="true" data-role-required="instructor,admin" onclick="switchTab('hrd-program', { focusDestination: true })"><i class="fas fa-user-check" aria-hidden="true"></i><span>HRD Program</span></button>
+        <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="enterprise" data-auth-required="true" data-role-required="admin" onclick="switchTab('enterprise', { focusDestination: true })" aria-hidden="true" tabindex="-1" hidden><i class="fas fa-building" aria-hidden="true"></i><span>Enterprise</span></button>
+        <button type="button" class="navigation-control more-nav-item" data-navigation-control data-tab="admin" data-auth-required="true" data-role-required="admin" onclick="switchTab('admin', { focusDestination: true })" aria-hidden="true" tabindex="-1" hidden><i class="fas fa-cog" aria-hidden="true"></i><span>Admin</span></button>
+        <button type="button" class="more-nav-item" onclick="toggleDarkMode();closeMobileMore(true)"><i class="fas fa-moon dark-mode-icon" aria-hidden="true"></i><span class="dark-mode-text">Dark mode</span></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Add User Modal (Admin) -->
+  <div id="adduser-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeAddUserModal()">
+    <div class="modal-content fade-in dark:bg-slate-800 dark:text-gray-100">
+      <div class="flex items-center justify-between mb-6"><h3 class="text-lg font-bold text-gray-900 dark:text-gray-100"><i class="fas fa-user-plus text-primary-500 mr-2"></i>부원 추가</h3><button onclick="closeAddUserModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center justify-center"><i class="fas fa-times"></i></button></div>
+      <div class="space-y-3">
+        <div><label class="text-sm font-bold text-gray-700 dark:text-gray-300 block mb-1">이름 *</label><input type="text" id="au-name" class="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 rounded-xl text-sm outline-none focus:border-primary-300" placeholder="부원 이름"></div>
+        <div><label class="text-sm font-bold text-gray-700 dark:text-gray-300 block mb-1">이메일 *</label><input type="email" id="au-email" class="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 rounded-xl text-sm outline-none focus:border-primary-300" placeholder="이메일"></div>
+        <div><label class="text-sm font-bold text-gray-700 dark:text-gray-300 block mb-1">비밀번호 *</label><input type="text" id="au-password" class="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 rounded-xl text-sm outline-none focus:border-primary-300" placeholder="초기 비밀번호"></div>
+        <div class="grid grid-cols-3 gap-3">
+          <div><label class="text-sm font-bold text-gray-700 dark:text-gray-300 block mb-1">학번</label><input type="text" id="au-studentid" class="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 rounded-xl text-sm outline-none" placeholder="2024-001"></div>
+          <div><label class="text-sm font-bold text-gray-700 dark:text-gray-300 block mb-1">학년</label><select id="au-grade" class="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 rounded-xl text-sm"><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
+          <div><label class="text-sm font-bold text-gray-700 dark:text-gray-300 block mb-1">역할</label><select id="au-role" class="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 rounded-xl text-sm"><option value="student">학생</option><option value="instructor">강사</option><option value="admin">관리자</option></select></div>
+        </div>
+      </div>
+      <div class="flex gap-3 justify-end mt-6"><button onclick="closeAddUserModal()" class="btn-secondary">취소</button><button onclick="doAddUser()" class="btn-primary"><i class="fas fa-user-plus"></i> 추가</button></div>
+    </div>
+  </div>
+
+<!-- v35: The ES module entry point owns the bridge and lifecycle. -->
+<script type="module" src="/static/modules/main.js"></script>
+
+</body>
+</html>

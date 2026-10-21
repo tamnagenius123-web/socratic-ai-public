@@ -1,0 +1,16 @@
+name = "socratic-analytics-consumer"
+main = "src/index.ts"
+compatibility_date = "2026-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[queues.consumers]]
+queue = "socratic-analytics-queue"
+max_batch_size = 5
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "socratic-analytics-dlq"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "socratic-ai-db"
+database_id = "00000000-0000-0000-0000-000000000000"

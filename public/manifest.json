@@ -1,0 +1,22 @@
+{
+  "name": "SocraticAI - 깊은 독서와 학제간 문제 훈련",
+  "short_name": "SocraticAI",
+  "description": "Library 근거로 진행하는 Sparring과 실제 세계 문제를 다루는 Training = Scenario",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF7",
+  "theme_color": "#D97757",
+  "orientation": "portrait-primary",
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

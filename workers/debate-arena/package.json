@@ -1,0 +1,13 @@
+{
+  "name": "socratic-debate-arena",
+  "version": "28.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "node ../../scripts/assert-production-ai-build.mjs && wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.4.0"
+  },
+  "license": "MIT"
+}

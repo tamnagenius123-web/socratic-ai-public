@@ -1,0 +1,16 @@
+name = "socratic-classchat-room"
+main = "src/index.ts"
+compatibility_date = "2026-03-31"
+compatibility_flags = ["nodejs_compat"]
+
+[durable_objects]
+bindings = [
+  { name = "CLASSCHAT_ROOM", class_name = "ClassChatRoomDO" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ClassChatRoomDO"]
+
+[ai]
+binding = "AI"
